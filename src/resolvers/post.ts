@@ -4,16 +4,7 @@ import { Resolver, Query, Ctx, Arg, Mutation } from "type-graphql";
 
 @Resolver()
 export class PostResolver {
-  @Query(() => [Post])
-  posts(@Ctx() { em }: MyContext): Promise<Post[]> {
-    return em.find(Post, {});
-  }
-
-  @Query(() => Post, { nullable: true })
-  post(@Arg("id") id: number, @Ctx() { em }: MyContext): Promise<Post | null> {
-    return em.findOne(Post, { id });
-  }
-
+  // CREATE
   @Mutation(() => Post)
   async createPost(
     @Arg("title") title: string,
@@ -24,6 +15,18 @@ export class PostResolver {
     return post;
   }
 
+  //READ
+  @Query(() => [Post])
+  posts(@Ctx() { em }: MyContext): Promise<Post[]> {
+    return em.find(Post, {});
+  }
+
+  @Query(() => Post, { nullable: true })
+  post(@Arg("id") id: number, @Ctx() { em }: MyContext): Promise<Post | null> {
+    return em.findOne(Post, { id });
+  }
+
+  // UPDATE
   @Mutation(() => Post)
   async updatePost(
     @Arg("id") id: number,
@@ -41,16 +44,13 @@ export class PostResolver {
     return post;
   }
 
-  @Mutation(() => Post)
+  //DELETE
+  @Mutation(() => Boolean)
   async deletePostById(
     @Arg("id") id: number,
     @Ctx() { em }: MyContext
   ): Promise<boolean> {
-    try {
-      await em.nativeDelete(Post, { id });
-      return true;
-    } catch (e) {
-      return false;
-    }
+    await em.nativeDelete(Post, { id });
+    return true;
   }
 }
