@@ -28,7 +28,7 @@ const main = async () => {
         client: redisClient,
         disableTouch: true,
       }),
-      saveUninitialized: false
+      saveUninitialized: false,
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
