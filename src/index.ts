@@ -1,13 +1,11 @@
 import { ApolloServer } from "apollo-server-express";
-import connectRedis from "connect-redis";
 import cors from "cors";
 import express from "express";
 import session from "express-session";
-import Redis from "ioredis";
 import "reflect-metadata";
 import { buildSchema } from "type-graphql";
 import { createConnection } from "typeorm";
-import { COOKIE_NAME, PORT, SESS_SECRET, __prod__ } from "./constants";
+import { COOKIE_NAME, ORIGIN, PORT, SESS_SECRET, __prod__ } from "./constants";
 import { PostResolver } from "./resolvers/post";
 import { UpdootResolver } from "./resolvers/updoot";
 import { UserResolver } from "./resolvers/user";
@@ -17,21 +15,12 @@ import { createUpdootLoader } from "./utils/createUpdootLoader";
 import { createUserLoader } from "./utils/createUserLoader";
 
 const main = async () => {
-  const con = await createConnection(typeormConfig);
-  await con.runMigrations();
-
+  await createConnection(typeormConfig);
   const app = express();
-
-  const RedisStore = connectRedis(session);
-  const redis = new Redis();
 
   app.use(
     session({
       name: COOKIE_NAME,
-      store: new RedisStore({
-        client: redis,
-        disableTouch: true,
-      }),
       saveUninitialized: false,
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
@@ -46,7 +35,7 @@ const main = async () => {
 
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: ORIGIN,
       credentials: true,
     })
   );
@@ -57,7 +46,6 @@ const main = async () => {
       validate: false,
     }),
     context: ({ req, res }: { req: any; res: any }): MyContext => ({
-      redis,
       req,
       res,
       userLoader: createUserLoader(),

@@ -13,11 +13,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const apollo_server_express_1 = require("apollo-server-express");
-const connect_redis_1 = __importDefault(require("connect-redis"));
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const express_session_1 = __importDefault(require("express-session"));
-const ioredis_1 = __importDefault(require("ioredis"));
 require("reflect-metadata");
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
@@ -29,17 +27,10 @@ const typeorm_config_1 = require("./typeorm.config");
 const createUpdootLoader_1 = require("./utils/createUpdootLoader");
 const createUserLoader_1 = require("./utils/createUserLoader");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    const con = yield typeorm_1.createConnection(typeorm_config_1.typeormConfig);
-    yield con.runMigrations();
+    yield typeorm_1.createConnection(typeorm_config_1.typeormConfig);
     const app = express_1.default();
-    const RedisStore = connect_redis_1.default(express_session_1.default);
-    const redis = new ioredis_1.default();
     app.use(express_session_1.default({
         name: constants_1.COOKIE_NAME,
-        store: new RedisStore({
-            client: redis,
-            disableTouch: true,
-        }),
         saveUninitialized: false,
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
@@ -51,7 +42,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         resave: false,
     }));
     app.use(cors_1.default({
-        origin: "http://localhost:3000",
+        origin: constants_1.ORIGIN,
         credentials: true,
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
@@ -60,7 +51,6 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             validate: false,
         }),
         context: ({ req, res }) => ({
-            redis,
             req,
             res,
             userLoader: createUserLoader_1.createUserLoader(),

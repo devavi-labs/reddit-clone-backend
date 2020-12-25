@@ -4,6 +4,7 @@ if (!__prod__) {
   require("dotenv").config();
 }
 
+export const ORIGIN = process.env.ORIGIN;
 export const DB_URL = process.env.DATABASE_URL;
 export const USERNAME = process.env.DATABASE_USER;
 export const PASSWORD = process.env.DATABASE_PASSWORD;

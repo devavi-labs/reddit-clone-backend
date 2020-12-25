@@ -17,6 +17,7 @@ import { MyContext } from "../types";
 import { sendEmail } from "../utils/sendEmail";
 import { validateRegister } from "../utils/validateRegister";
 import { CredentialOptions } from "./CredentialOptions";
+import { Cache } from "../entities/Cache";
 
 @ObjectType()
 class FieldError {
@@ -52,7 +53,7 @@ export class UserResolver {
   async changePassword(
     @Arg("token") token: string,
     @Arg("newPassword") newPassword: string,
-    @Ctx() { redis, req }: MyContext
+    @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
     if (newPassword?.length <= 5) {
       return {
@@ -67,10 +68,10 @@ export class UserResolver {
 
     const key = FORGOT_PASSWORD_PREFIX + token;
 
-    const userId = await redis.get(key);
-    const id = parseInt(userId!);
+    const cache = await Cache.findOne(key);
+    const id = parseInt(cache?.value!);
 
-    if (!userId) {
+    if (!cache) {
       return {
         errors: [
           {
@@ -103,16 +104,13 @@ export class UserResolver {
     //@ts-ignore
     req.session.userId = user.id;
 
-    await redis.del(key);
+    await Cache.delete(key);
 
     return { user };
   }
 
   @Mutation(() => Boolean)
-  async forgotPassword(
-    @Arg("email") email: string,
-    @Ctx() { redis }: MyContext
-  ) {
+  async forgotPassword(@Arg("email") email: string) {
     const user = await User.findOne({ where: { email } });
     if (!user) {
       // the email is not in the db
@@ -120,13 +118,12 @@ export class UserResolver {
     }
 
     const token = v4();
+    const key = FORGOT_PASSWORD_PREFIX + token;
 
-    await redis.set(
-      FORGOT_PASSWORD_PREFIX + token,
-      user.id,
-      "ex",
-      1000 * 60 * 60 * 24 * 3 // 3 days
-    );
+    await Cache.insert({
+      key,
+      value: user.id.toString(),
+    });
 
     const text = `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`;
     await sendEmail(email, text);

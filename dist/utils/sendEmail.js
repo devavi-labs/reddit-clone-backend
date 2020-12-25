@@ -15,24 +15,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const sendEmail = (to, text) => __awaiter(void 0, void 0, void 0, function* () {
-    let transporter = nodemailer_1.default.createTransport({
-        host: "smtp.ethereal.email",
-        port: 587,
-        secure: false,
+    const transporter = nodemailer_1.default.createTransport({
+        host: "smtpout.secureserver.net",
+        port: 465,
         auth: {
-            user: "jbckdx4piz2xjfbp@ethereal.email",
-            pass: "BbDYJjghdHUmStHXbg",
+            user: "me@devavi.xyz",
+            pass: "Avis.@2002",
         },
-        tls: { rejectUnauthorized: false },
     });
-    let info = yield transporter.sendMail({
-        from: '"Fred Foo 👻" <foo@example.com>',
+    const info = yield transporter.sendMail({
+        from: '"LiReddit - Dev. Avi" <me@devavi.xyz>',
         to,
-        subject: "Change password",
+        subject: "Change password - LiReddit",
         html: text,
     });
     console.log("Message sent: %s", info.messageId);
-    console.log("Preview URL: %s", nodemailer_1.default.getTestMessageUrl(info));
 });
 exports.sendEmail = sendEmail;
 //# sourceMappingURL=sendEmail.js.map

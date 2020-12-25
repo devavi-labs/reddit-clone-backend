@@ -33,6 +33,7 @@ const constants_1 = require("../constants");
 const sendEmail_1 = require("../utils/sendEmail");
 const validateRegister_1 = require("../utils/validateRegister");
 const CredentialOptions_1 = require("./CredentialOptions");
+const Cache_1 = require("../entities/Cache");
 let FieldError = class FieldError {
 };
 __decorate([
@@ -66,7 +67,7 @@ let UserResolver = class UserResolver {
         }
         return "";
     }
-    changePassword(token, newPassword, { redis, req }) {
+    changePassword(token, newPassword, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
             if ((newPassword === null || newPassword === void 0 ? void 0 : newPassword.length) <= 5) {
                 return {
@@ -79,9 +80,9 @@ let UserResolver = class UserResolver {
                 };
             }
             const key = constants_1.FORGOT_PASSWORD_PREFIX + token;
-            const userId = yield redis.get(key);
-            const id = parseInt(userId);
-            if (!userId) {
+            const cache = yield Cache_1.Cache.findOne(key);
+            const id = parseInt(cache === null || cache === void 0 ? void 0 : cache.value);
+            if (!cache) {
                 return {
                     errors: [
                         {
@@ -106,18 +107,22 @@ let UserResolver = class UserResolver {
             user.password = hashedPassword;
             yield User_1.User.update({ id }, { password: hashedPassword });
             req.session.userId = user.id;
-            yield redis.del(key);
+            yield Cache_1.Cache.delete(key);
             return { user };
         });
     }
-    forgotPassword(email, { redis }) {
+    forgotPassword(email) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield User_1.User.findOne({ where: { email } });
             if (!user) {
                 return true;
             }
             const token = uuid_1.v4();
-            yield redis.set(constants_1.FORGOT_PASSWORD_PREFIX + token, user.id, "ex", 1000 * 60 * 60 * 24 * 3);
+            const key = constants_1.FORGOT_PASSWORD_PREFIX + token;
+            yield Cache_1.Cache.insert({
+                key,
+                value: user.id.toString(),
+            });
             const text = `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`;
             yield sendEmail_1.sendEmail(email, text);
             return true;
@@ -235,9 +240,8 @@ __decorate([
 __decorate([
     type_graphql_1.Mutation(() => Boolean),
     __param(0, type_graphql_1.Arg("email")),
-    __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "forgotPassword", null);
 __decorate([

@@ -9,6 +9,7 @@ const constants_1 = require("./constants");
 const Post_1 = require("./entities/Post");
 const Updoot_1 = require("./entities/Updoot");
 const User_1 = require("./entities/User");
+const Cache_1 = require("./entities/Cache");
 exports.typeormConfig = {
     url: constants_1.DB_URL,
     type: "postgres",
@@ -18,6 +19,6 @@ exports.typeormConfig = {
     logging: true,
     synchronize: true,
     migrations: [path_1.default.join(__dirname, "./migrations/*")],
-    entities: [Post_1.Post, User_1.User, Updoot_1.Updoot],
+    entities: [Post_1.Post, User_1.User, Updoot_1.Updoot, Cache_1.Cache],
 };
 //# sourceMappingURL=typeorm.config.js.map
