@@ -1,29 +1,53 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 import { ObjectType, Field, Int } from "type-graphql";
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  OneToMany,
+} from "typeorm";
+import { Post } from "./Post";
+import { Updoot } from "./Updoot";
 
 @ObjectType()
 @Entity()
-export class User {
+export class User extends BaseEntity {
   @Field(() => Int)
-  @PrimaryKey()
+  @PrimaryGeneratedColumn()
   id!: number;
 
   @Field(() => String)
-  @Property({ type: "date" })
-  createdAt = new Date();
+  @CreateDateColumn()
+  createdAt: Date;
 
   @Field(() => String)
-  @Property({ type: "date", onUpdate: () => new Date() })
-  updatedAt = new Date();
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @Field(() => String)
-  @Property({ type: "text", unique: true })
+  @Column({ unique: true })
   username!: string;
 
   @Field(() => String)
-  @Property({ type: "text" })
+  @Column({ unique: true })
+  email!: string;
+
+  @Field(() => String)
+  @Column()
   name!: string;
 
-  @Property({ type: "text" })
+  @Column()
   password!: string;
+
+  @OneToMany(() => Post, (post) => post.creator, {
+    onDelete: "CASCADE",
+  })
+  posts: Post[];
+
+  @OneToMany(() => Updoot, (updoot) => updoot.user, {
+    onDelete: "CASCADE",
+  })
+  updoots: Updoot[];
 }
